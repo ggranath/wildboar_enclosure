@@ -690,7 +690,8 @@ summary(lm(df$Fungibac~resp.sep[,2]))
 
 
 # Tree growth ####
-df.tree <- read_excel("Lundgren_etal_tree_core_data.xlsx")
+# sheet 3 has cm2 growth data
+df.tree <- read_excel("Lundgren_etal_tree_core_data.xlsx", sheet =3 )
 
 # diff over 2014-2015, ie year 2 and 3 after introduction
 df.tree$yr.2.3.post <- rowMeans(df.tree[,12:13])
@@ -698,7 +699,6 @@ df.tree$yr.0.1.post <- rowMeans(df.tree[,14:15])
 df.tree$Treatment <- factor(df.tree$Treatment, levels=c("Reference", "Enclosure"))
 Tree.test2 <- lm(yr.2.3.post ~ scale(yr.0.1.post,scale=F) + Environment*Treatment, 
                  df.tree, )
-summary(Tree.test2)
 Anova(Tree.test2, type = 2)
 
 # Or use relative growth, which gives the same result
@@ -715,22 +715,22 @@ Tree.Env <- lm(RelaTree ~ Treatment * Environment, df.tree)
 Anova(Tree.Env, type = 2)
 
 # Plot relative change over time
-df.tree.plot <- gather(df.tree, key = "Year", value = "width",
+df.tree.plot <- gather(df.tree, key = "Year", value = "area",
                        '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014',
                        '2015', '2016', '2017', '2018', '2019', '2020')
 
-mean.tree <- aggregate(width~Treatment+Year, df.tree.plot, mean)
-mean.tree$se <- aggregate(width~Treatment+Year, df.tree.plot, se)$width
+mean.tree <- aggregate(area~Treatment+Year, df.tree.plot, mean)
+mean.tree$se <- aggregate(area~Treatment+Year, df.tree.plot, se)$area
 mean.tree$Year <- as.Date(rep(c("2006-01-02","2007-01-02", "2008-01-02", "2009-01-02",
                                 "2010-01-02", "2011-01-02", "2012-01-02", "2013-01-02",
                                 "2014-01-02", "2015-01-02", "2016-01-02", "2017-01-02",
                                 "2018-01-02", "2019-01-02", "2020-01-02"), each=2)) 
 mean.tree$Treatment <- factor(mean.tree$Treatment, levels=c("Reference", "Enclosure"))
 
-fig9 <- ggplot(mean.tree, aes(x=Year, y=width, shape=Treatment))+
+fig9 <- ggplot(mean.tree, aes(x=Year, y=area, shape=Treatment))+
   geom_line(aes(linetype = Treatment)) +
   geom_point()+
-  geom_errorbar(aes(ymax = width + se, ymin = width - se), width = 0.1, color = "Gray25") +
+  geom_errorbar(aes(ymax = area + se, ymin = area - se), width = 0.1, color = "Gray25") +
   geom_vline(xintercept=as.numeric(mean.tree$Year[14]), linetype=2) +
   scale_shape_manual(values=c(21,19)) +
   scale_y_continuous(limits = c(0.5,2.1)) +
